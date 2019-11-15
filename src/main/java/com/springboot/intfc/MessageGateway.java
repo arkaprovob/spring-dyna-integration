@@ -8,7 +8,7 @@ import java.util.concurrent.Future;
 @MessagingGateway
 public interface MessageGateway {
 
-    @Gateway(requestChannel = "transForm")
-    public <S> Future<S> sendMessageToChannel1(S request);
+    @Gateway(requestChannel = "abc")
+    public <S> String sendMessageToChannel1(S request);
 
 }
