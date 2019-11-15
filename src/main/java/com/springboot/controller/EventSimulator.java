@@ -1,6 +1,7 @@
 package com.springboot.controller;
 
 import com.springboot.intfc.MessageGateway;
+import com.springboot.utility.MessageSchema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +23,7 @@ public class EventSimulator {
     }
 
     @PostMapping
-    public void trigger(@RequestBody String payload) {
+    public void trigger(@RequestBody MessageSchema payload) {
         messageGateway.sendMessageToChannel1(payload);
     }
 }

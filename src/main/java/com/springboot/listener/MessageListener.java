@@ -4,7 +4,10 @@ import com.springboot.intfc.MessageGateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.redis.config.RedisQueueOutboundChannelAdapterParser;
+import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Component;
@@ -20,36 +23,27 @@ public class MessageListener {
     @Autowired
     private MessageGateway messageGateway;
 
-    @ServiceActivator(inputChannel = "abc",outputChannel = "out-channel")
+    @Autowired
+    private JedisConnectionFactory jedisConnectionFactory;
+
+    @ServiceActivator(inputChannel = "inputChannel",outputChannel = "redisChannel")
     public Message<?>  receiveFromInputChannel(Message<?> message) {
 
-        System.out.println("message object  is "+message);
-        System.out.println("received from inputChannel channel " + message.getPayload() + " Thread : " + Thread.currentThread().getName());
-        return newMessage("Data successfuly transformed");
-    }
-
-
-
-    @ServiceActivator(inputChannel = "out-channel",outputChannel = "")
-    public Message<?> receiveFromOutputChannel(Message<?> message) {
-        System.out.println("INSIDE out-channel...");
-        System.out.println("received from outChannel " + message.getPayload() + " Thread : " + Thread.currentThread().getName());
+        System.out.println("receieve from service");
         return message;
     }
 
-    private <S> Message<S> newMessage(S paylaod){
-        return new Message<S>() {
-            @Override
-            public S getPayload() {
-                return paylaod;
-            }
-
-            @Override
-            public MessageHeaders getHeaders() {
-                HashMap map = new HashMap();
-                map.put("custom-header","secret");
-                return new MessageHeaders(map);
-            }
-        };
+    @ServiceActivator(inputChannel = "redisChannel")
+    public void  sendMessageToQueue(Message<?> message) {
+        RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("Redis-Queue",jedisConnectionFactory);
+        adapter.handleMessage(message);
     }
+
+
+    @ServiceActivator(inputChannel = "receiverChannel")
+    public void  receiveFromQueue(Message<?> message) {
+        System.out.println("received from redis queue "+message);
+    }
+
+
 }
