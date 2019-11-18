@@ -36,8 +36,8 @@ public class IntegrationConfig {
     }
 
     @Bean
-    public DirectChannel receiverChannel() {
-        return new DirectChannel();
+    public DirectChannel redisQueueHandler() {
+        return new CustomMessageChannel();
     }
 
     @Bean // General example of handling a queue
