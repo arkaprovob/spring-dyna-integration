@@ -18,7 +18,7 @@ public class JsonRedisSerializer implements RedisSerializer<Object> {
     public byte[] serialize(Object t) throws SerializationException {
         try {
             return om.writeValueAsBytes(t);
-        } catch ( JsonProcessingException e) {
+        } catch (JsonProcessingException e) {
             throw new SerializationException(e.getMessage(), e);
         }
     }
@@ -26,7 +26,7 @@ public class JsonRedisSerializer implements RedisSerializer<Object> {
     @Override
     public Object deserialize(byte[] bytes) throws SerializationException {
 
-        if(bytes == null){
+        if (bytes == null) {
             return null;
         }
 

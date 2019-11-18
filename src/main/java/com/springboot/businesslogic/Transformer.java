@@ -9,11 +9,11 @@ import java.util.HashMap;
 @Component
 public class Transformer {
 
-    public Message<String> transform(Message<?> message){
+    public Message<String> transform(Message<?> message) {
         return newMessage("Thrid level of transformation");
     }
 
-    private <S> Message<S> newMessage(S paylaod){
+    private <S> Message<S> newMessage(S paylaod) {
         return new Message<S>() {
             @Override
             public S getPayload() {
@@ -23,7 +23,7 @@ public class Transformer {
             @Override
             public MessageHeaders getHeaders() {
                 HashMap map = new HashMap();
-                map.put("custom-header","secret");
+                map.put("custom-header", "secret");
                 return new MessageHeaders(map);
             }
         };
