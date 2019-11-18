@@ -75,4 +75,14 @@ public class MessageListener {
         System.out.println("boo message received " + message);
     }
 
+    @ServiceActivator(inputChannel = "ThrowErrorChannel")
+    public void receiveErroneousMessages(Message<?> message) {
+        throw new RuntimeException("Intentional");
+    }
+
+    @ServiceActivator(inputChannel = "errorChannel")
+    public void handleError(Message<?> message) {
+        System.out.println("handling error of  " + message);
+    }
+
 }

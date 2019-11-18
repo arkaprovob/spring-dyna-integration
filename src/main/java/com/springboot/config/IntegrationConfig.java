@@ -76,6 +76,15 @@ public class IntegrationConfig {
         return endPoint;
     }
 
+    @Bean //example of error Handling
+    public RedisQueueMessageDrivenEndpoint consumerEndPointWithError() {
+        RedisQueueMessageDrivenEndpoint endPoint = new RedisQueueMessageDrivenEndpoint("Medis-Queue",
+                jedisConnectionFactory());
+        endPoint.setOutputChannelName("ThrowErrorChannel");
+        endPoint.setSerializer(new StringRedisSerializer());
+        endPoint.setErrorChannelName("errorChannel");
+        return endPoint;
+    }
 
     @Bean
     public IntegrationFlow flow(@Qualifier("jedisConnectionFactory") RedisConnectionFactory connectionFactory) {
