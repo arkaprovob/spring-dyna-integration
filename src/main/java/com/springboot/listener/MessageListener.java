@@ -5,12 +5,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.integration.annotation.Filter;
+import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
 import org.springframework.messaging.Message;
-import org.springframework.stereotype.Component;
 
-@Component
+@MessageEndpoint
 public class MessageListener {
 
     Logger log = LoggerFactory.getLogger(MessageListener.class);
@@ -35,10 +37,42 @@ public class MessageListener {
     }
 
 
-    @ServiceActivator(inputChannel = "receiverChannel")
+    @ServiceActivator(inputChannel = "redisQueueHandler")
     public void receiveFromQueue(Message<?> message) {
         System.out.println("received from redis queue " + message);
     }
 
+    @Filter(inputChannel = "filterChannel", outputChannel = "processFilteredMessage", discardChannel = "messageDiscardChannel")
+    public boolean receiveFromQueueWIthRespectToMessageFilter(Message<?> message) {
+        return message.getPayload().equals("HII");
+    }
+
+    @ServiceActivator(inputChannel = "processFilteredMessage")
+    public void receiveFilteredOutput(Message<?> message) {
+        System.out.println("filter message received " + message);
+    }
+
+    @ServiceActivator(inputChannel = "messageDiscardChannel")
+    public void receiveUnFilteredOutput(Message<?> message) {
+        System.out.println("discarded message received " + message);
+    }
+
+    @Router(inputChannel = "routeChannel")
+    public String routeMessageToAChannel(Message<?> message) {
+        if (message.getPayload().toString().equals("Yoo")) {
+            return "yooChannel";
+        }
+        return "booChannel";
+    }
+
+    @ServiceActivator(inputChannel = "yooChannel")
+    public void receiveYooMessages(Message<?> message) {
+        System.out.println("yoo message received " + message);
+    }
+
+    @ServiceActivator(inputChannel = "booChannel")
+    public void receiveBooMessages(Message<?> message) {
+        System.out.println("boo message received " + message);
+    }
 
 }
