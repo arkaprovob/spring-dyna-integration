@@ -83,6 +83,7 @@ public class MessageListener {
     @ServiceActivator(inputChannel = "errorChannel")
     public void handleError(Message<?> message) {
         System.out.println("handling error of  " + message);
+        System.out.println("Sending back to the queue from where it came.");
     }
 
 }
