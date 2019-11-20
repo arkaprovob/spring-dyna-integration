@@ -57,23 +57,21 @@ public class MessageListener {
         System.out.println("discarded message received " + message);
     }
 
-    @Router(inputChannel = "routeChannel")
+/*    @Router(inputChannel = "routeChannel")
     public String routeMessageToAChannel(Message<?> message) {
         if (message.getPayload().toString().equals("Yoo")) {
             return "yooChannel";
         }
         return "booChannel";
+    }*/
+
+
+    @Router(inputChannel = "routeChannel",channelMappings = {"Yoo=yooChannel"},
+            defaultOutputChannel = "booChannel",resolutionRequired = "false")
+    public String routeMessageToAChannel(Message<?> message) {
+        return message.getPayload().toString();
     }
 
-    @ServiceActivator(inputChannel = "yooChannel")
-    public void receiveYooMessages(Message<?> message) {
-        System.out.println("yoo message received " + message);
-    }
-
-    @ServiceActivator(inputChannel = "booChannel")
-    public void receiveBooMessages(Message<?> message) {
-        System.out.println("boo message received " + message);
-    }
 
     @ServiceActivator(inputChannel = "ThrowErrorChannel")
     public void receiveErroneousMessages(Message<?> message) {
