@@ -26,7 +26,7 @@ public class PIntegration {
     }
 
     @Bean
-    public DirectChannel redisQueueHandler() {
+    public DirectChannel directChannel() {
         return new CustomMessageChannel();
     }
 
