@@ -1,7 +1,6 @@
-package com.springboot.business;
+package com.pintegration.business;
 
 import org.json.JSONObject;
-import org.springframework.messaging.Message;
 
 public class JsonTransformer {
 

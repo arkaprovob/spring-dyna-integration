@@ -1,4 +1,4 @@
-package com.springboot.config;
+package com.pintegration.config;
 
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
