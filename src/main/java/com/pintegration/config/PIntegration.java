@@ -21,21 +21,18 @@ import com.pintegration.business.handler.Handler;
 @IntegrationComponentScan("com.pintegration")
 public class PIntegration {
 
-    @Bean
-    public JedisConnectionFactory jedisConnectionFactory() {
-        return new JedisConnectionFactory();
-    }
+
 
     @Bean
-    public DirectChannel directChannel() {
+    public DirectChannel redisQueueHandler() {
         return new CustomMessageChannel();
     }
 
 
     @Bean // General example of handling a queue
-    public RedisQueueMessageDrivenEndpoint consumerEndPoint() {
+    public RedisQueueMessageDrivenEndpoint consumerEndPoint(@Qualifier("jedisConnectionFactory") RedisConnectionFactory connectionFactory) {
         RedisQueueMessageDrivenEndpoint endPoint = new RedisQueueMessageDrivenEndpoint("Redis-Queue",
-                jedisConnectionFactory());
+                connectionFactory);
         endPoint.setOutputChannelName("redisQueueHandler");
         endPoint.setSerializer(new StringRedisSerializer());
         return endPoint;
