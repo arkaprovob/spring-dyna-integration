@@ -1,27 +1,23 @@
 package com.pintegration.config;
 
-
 import com.pintegration.business.JsonTransformer;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpoint;
 import com.pintegration.business.handler.Handler;
+
+
 @Configuration
-@EnableIntegration
-@IntegrationComponentScan("com.pintegration")
-public class PIntegration {
-
-
+@ConditionalOnBean(DynamicPIntegration.class)
+public class IntegrationConfig {
 
     @Bean
     public DirectChannel redisQueueHandler() {

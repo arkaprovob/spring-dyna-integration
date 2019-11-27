@@ -29,4 +29,8 @@ public class CustomMessageChannel extends DirectChannel {
         return super.doSend(message,timeout);
     }
 
+    public String assignedChannelName(){
+        return this.channelName;
+    }
+
 }
