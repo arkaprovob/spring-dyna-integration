@@ -1,7 +1,10 @@
 package com.pintegration.config;
 
 import com.pintegration.business.JsonTransformer;
+import com.pintegration.config.examine.CustomRedisQueueMessageDrivenEndpoint;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +22,8 @@ import com.pintegration.business.handler.Handler;
 @ConditionalOnBean(PIntegration.class)
 public class IntegrationConfig {
 
+    Logger log = LoggerFactory.getLogger("IntegrationConfig");
+
     @Bean
     public DirectChannel redisQueueHandler() {
         return new CustomMessageChannel();
@@ -26,11 +31,14 @@ public class IntegrationConfig {
 
 
     @Bean // General example of handling a queue
-    public RedisQueueMessageDrivenEndpoint consumerEndPoint(@Qualifier("jedisConnectionFactory") RedisConnectionFactory connectionFactory) {
-        RedisQueueMessageDrivenEndpoint endPoint = new RedisQueueMessageDrivenEndpoint("Redis-Queue",
+    public CustomRedisQueueMessageDrivenEndpoint consumerEndPoint(@Qualifier("jedisConnectionFactory") RedisConnectionFactory connectionFactory) {
+        CustomRedisQueueMessageDrivenEndpoint endPoint = new CustomRedisQueueMessageDrivenEndpoint("Redis-Queue",
                 connectionFactory);
         endPoint.setOutputChannelName("redisQueueHandler");
         endPoint.setSerializer(new StringRedisSerializer());
+        log.info("\n");
+        log.info("CustomRedisQueueMessageDrivenEndpoint IS RUNNING STATUS ......{}",endPoint.isRunning());
+        log.info("CustomRedisQueueMessageDrivenEndpoint IS LISTENING STATUS ......{}",endPoint.isListening());
         return endPoint;
     }
 
