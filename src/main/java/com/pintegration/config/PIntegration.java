@@ -2,12 +2,13 @@ package com.pintegration.config;
 
 import com.pintegration.business.JsonTransformer;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -20,8 +21,9 @@ import java.util.Set;
 
 @Configuration
 /*@EnableIntegration*/
-public class DynamicPIntegration {
+public class PIntegration {
 
+    Logger log = LoggerFactory.getLogger("PIntegration");
 
     @Bean
     public JedisConnectionFactory jedisConnectionFactory() {
@@ -31,7 +33,7 @@ public class DynamicPIntegration {
 
     private final  GenericApplicationContext context;
 
-    public DynamicPIntegration(GenericApplicationContext context) {
+    public PIntegration(GenericApplicationContext context) {
         this.context = context;
     }
 
@@ -43,7 +45,7 @@ public class DynamicPIntegration {
         Set<byte[]> preKeys = jedisConnectionFactory().getConnection().keys(keyPattern);
         assert preKeys != null;
         preKeys.forEach(queueName-> listOfQueues.add(new String(queueName, StandardCharsets.UTF_8)));
-        System.out.println("listOfQueues are as follows "+listOfQueues.toString());
+        log.info("listOfQueues are as follows {}",listOfQueues.toString());
         return listOfQueues;
     }
 
@@ -58,11 +60,11 @@ public class DynamicPIntegration {
         String integrationFlowBeanName = channel+"IntegrationFlow";
 
         context.registerBean(channel,DirectChannel.class,()->redisQueueHandler(channel));
-        System.out.println("registered new DirectChannel named  "+channel);
+        log.info("registered new DirectChannel named  {}",channel);
         context.registerBean(consumerEndPointBeanName,RedisQueueMessageDrivenEndpoint.class,()->consumerEndPoint(queueName,channel));
-        System.out.println("registered new RedisQueueMessageDrivenEndpoint named  "+consumerEndPointBeanName);
+        log.info("registered new RedisQueueMessageDrivenEndpoint named  {}",consumerEndPointBeanName);
         context.registerBean(integrationFlowBeanName,IntegrationFlow.class,()->flow(channel));
-        System.out.println("registered new RedisQueueMessageDrivenEndpoint named  "+integrationFlowBeanName);
+        log.info("registered new IntegrationFlowBean named  {}",integrationFlowBeanName);
 
     }
 

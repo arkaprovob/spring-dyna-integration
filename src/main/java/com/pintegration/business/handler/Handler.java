@@ -2,11 +2,16 @@ package com.pintegration.business.handler;
 
 import com.pintegration.processor.Processor;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class Handler {
+
+    private static Logger log = LoggerFactory.getLogger("Handler");
 
     private Handler(){}
 
@@ -18,21 +23,17 @@ public class Handler {
     }
 
     public static void handle(JSONObject payload){
-        System.out.println("Handling payload and sending for further processing");
+        log.info("Handling payload and sending for further processing");
 
         String determineProcessorValue = payload.getString("eventCategory");
         String processorClassName = router.get(determineProcessorValue);
-
         Processor processor = null;
         try {
             processor = (Processor)Class.forName(processorClassName).newInstance();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            log.error("",e);
         }
+        Assert.notNull(processor,"processor not found!");
         processor.process(payload);
     }
 

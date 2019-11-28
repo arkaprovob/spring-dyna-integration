@@ -1,5 +1,7 @@
 package com.pintegration.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
 
@@ -10,6 +12,8 @@ import java.util.UUID;
 * and I/0 channel name this class is created to show that implementation.
  * */
 public class CustomMessageChannel extends DirectChannel {
+
+    private static Logger log = LoggerFactory.getLogger("CustomMessageChannel");
 
     private final String channelName;
 
@@ -25,7 +29,7 @@ public class CustomMessageChannel extends DirectChannel {
 
     @Override
     protected boolean doSend(Message<?> message, long timeout) {
-        System.out.println("CustomMessageChannel doSend method invoked from object "+channelName);
+        log.info("CustomMessageChannel doSend method invoked from object {}",channelName);
         return super.doSend(message,timeout);
     }
 

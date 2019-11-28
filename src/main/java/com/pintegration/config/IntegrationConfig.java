@@ -16,7 +16,7 @@ import com.pintegration.business.handler.Handler;
 
 
 @Configuration
-@ConditionalOnBean(DynamicPIntegration.class)
+@ConditionalOnBean(PIntegration.class)
 public class IntegrationConfig {
 
     @Bean
