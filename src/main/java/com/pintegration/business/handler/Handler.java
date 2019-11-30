@@ -12,32 +12,30 @@ import java.util.Map;
 public class Handler {
 
     private static Logger log = LoggerFactory.getLogger("Handler");
+    private static Map<String, String> router = new HashMap<>();
 
-    private Handler(){}
-
-    private static Map<String,String > router = new HashMap<>();
-
-    static{
-        router.put("provision","com.pintegration.processor.ProvisioningProcessor");
-        router.put("statusEvent","com.pintegration.processor.StatusEventProcessor");
+    static {
+        router.put("provision", "com.pintegration.processor.ProvisioningProcessor");
+        router.put("statusEvent", "com.pintegration.processor.StatusEventProcessor");
     }
 
-    public static void handle(JSONObject payload){
+    private Handler() {
+    }
+
+    public static void handle(JSONObject payload) {
         log.info("Handling payload and sending for further processing");
 
         String determineProcessorValue = payload.getString("eventCategory");
         String processorClassName = router.get(determineProcessorValue);
         Processor processor = null;
         try {
-            processor = (Processor)Class.forName(processorClassName).newInstance();
+            processor = (Processor) Class.forName(processorClassName).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            log.error("",e);
+            log.error("", e);
         }
-        Assert.notNull(processor,"processor not found!");
+        Assert.notNull(processor, "processor not found!");
         processor.process(payload);
     }
-
-
 
 
 }

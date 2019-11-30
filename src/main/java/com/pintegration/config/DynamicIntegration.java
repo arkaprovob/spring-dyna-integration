@@ -1,13 +1,13 @@
 package com.pintegration.config;
 
 import com.pintegration.business.JsonTransformer;
+import com.pintegration.business.handler.Handler;
 import com.pintegration.config.examine.CustomRedisQueueMessageDrivenEndpoint;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,83 +19,83 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
-import org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpoint;
-import com.pintegration.business.handler.Handler;
+
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 
 @Configuration
-public class PIntegration {
+public class DynamicIntegration {
 
+    private final GenericApplicationContext context;
     Logger log = LoggerFactory.getLogger("PIntegration");
-
+    AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(RootConfiguration.class);
+    ConfigurableListableBeanFactory beanFactory = ctx.getBeanFactory();
     @Autowired
     private IntegrationFlowContext integrationFlowContext;
 
-    AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(RootConfiguration.class);
-    ConfigurableListableBeanFactory beanFactory = ctx.getBeanFactory();
+
+    public DynamicIntegration(GenericApplicationContext context) {
+        this.context = context;
+    }
 
     @Bean
     public JedisConnectionFactory jedisConnectionFactory() {
         return new JedisConnectionFactory();
     }
 
-
-    private final  GenericApplicationContext context;
-
-    public PIntegration(GenericApplicationContext context) {
-        this.context = context;
-    }
-
-
-
-    private Set<String> listOfRedisQueue(){
+    private Set<String> listOfRedisQueue() {
         byte[] keyPattern = "*Queue".getBytes();
         Set<String> listOfQueues = new HashSet<>();
         Set<byte[]> preKeys = jedisConnectionFactory().getConnection().keys(keyPattern);
         assert preKeys != null;
-        preKeys.forEach(queueName-> listOfQueues.add(new String(queueName, StandardCharsets.UTF_8)));
-        log.info("listOfQueues are as follows {}",listOfQueues.toString());
+        preKeys.forEach(queueName -> listOfQueues.add(new String(queueName, StandardCharsets.UTF_8)));
+        log.info("listOfQueues are as follows {}", listOfQueues.toString());
         return listOfQueues;
     }
 
-    public void createOnTheFlyIntegrationBean(){
-        listOfRedisQueue().forEach(this::registerBeans);
+    public String createOnTheFlyIntegrationBean() {
+        StringBuilder replyRegister = new StringBuilder();
+        listOfRedisQueue().forEach(key-> registerBeans(key,replyRegister));
+        return replyRegister.toString();
     }
 
-    private void registerBeans(String queueName){
+    private void registerBeans(String queueName,StringBuilder replyRegister) {
 
-        String channel = "channel-"+queueName;
-        String consumerEndPointBeanName = queueName+"-"+channel+"ConsumerEndPoint";
-        String integrationFlowBeanName = channel+"IntegrationFlow";
+        String channel = "channel-" + queueName;
+        String consumerEndPointBeanName = queueName + "-" + channel + "ConsumerEndPoint";
+        String integrationFlowBeanName = channel + "IntegrationFlow";
 
-        context.registerBean(channel,DirectChannel.class,()->redisQueueHandler(channel));
-        log.info("registered new DirectChannel named  {}",channel);
-        context.registerBean(consumerEndPointBeanName,CustomRedisQueueMessageDrivenEndpoint.class,()->consumerEndPoint(queueName,channel));
+        context.registerBean(channel, DirectChannel.class, () -> redisQueueHandler(channel));
+        replyRegister.append("registered new DirectChannel named  ").append(channel);
+        replyRegister.append("........................");
+        context.registerBean(consumerEndPointBeanName, CustomRedisQueueMessageDrivenEndpoint.class, () -> consumerEndPoint(queueName, channel));
         CustomRedisQueueMessageDrivenEndpoint endpoint = (CustomRedisQueueMessageDrivenEndpoint) context.getBean(consumerEndPointBeanName);
         endpoint.doStart();
-        log.info("registered new RedisQueueMessageDrivenEndpoint named  {}",consumerEndPointBeanName);
+        replyRegister.append("registered new RedisQueueMessageDrivenEndpoint named  ").append(consumerEndPointBeanName);
+        replyRegister.append("........................");
         IntegrationFlow flow = flow(channel);
         this.integrationFlowContext.registration(flow).register().start();
-        log.info("registered new IntegrationFlowBean named  {}",integrationFlowBeanName);
-
+        replyRegister.append("registered new IntegrationFlowBean named  ").append(integrationFlowBeanName);
+        replyRegister.append("........................");
     }
 
 
     private DirectChannel redisQueueHandler(String channel) {
         return new CustomMessageChannel(channel);
     }
-    private CustomRedisQueueMessageDrivenEndpoint consumerEndPoint(String queueName,String channel) {
+
+    private CustomRedisQueueMessageDrivenEndpoint consumerEndPoint(String queueName, String channel) {
         CustomRedisQueueMessageDrivenEndpoint endPoint = new CustomRedisQueueMessageDrivenEndpoint(queueName,
                 jedisConnectionFactory());
         endPoint.setOutputChannelName(channel);
         endPoint.setSerializer(new StringRedisSerializer());
         return endPoint;
     }
+
     private IntegrationFlow flow(String channel) {
         String chnl = channel; //"myapp."+channel
-        log.info("registering for channel {}",chnl);
+        log.info("registering for channel {}", chnl);
         return IntegrationFlows.from(chnl)
                 .transform(JsonTransformer::transformIntoJson)
                 .handle(x -> Handler.handle((JSONObject) x.getPayload()))

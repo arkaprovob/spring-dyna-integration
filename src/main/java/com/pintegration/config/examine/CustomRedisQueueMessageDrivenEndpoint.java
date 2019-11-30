@@ -1,10 +1,6 @@
 package com.pintegration.config.examine;
 
 
-import java.util.Optional;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
-
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -29,9 +25,13 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.SchedulingAwareRunnable;
 import org.springframework.util.Assert;
 
+import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+
 @ManagedResource
 @IntegrationManagedResource
-public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSupport implements ApplicationEventPublisherAware{
+public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSupport implements ApplicationEventPublisherAware {
 
 
     public static final long DEFAULT_RECEIVE_TIMEOUT = 1000;
@@ -93,6 +93,7 @@ public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSuppor
      * the retrieved data will be used as the payload for a new Spring Integration
      * Message. Otherwise, the data is deserialized as Spring Integration
      * Message.
+     *
      * @param expectMessage Defaults to false
      */
     public void setExpectMessage(boolean expectMessage) {
@@ -108,6 +109,7 @@ public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSuppor
      * <p> A timeout of zero can be used to block indefinitely. If not set explicitly
      * the timeout value will default to {@code 1000}
      * <p> See also: http://redis.io/commands/brpop
+     *
      * @param receiveTimeout Must be non-negative. Specified in milliseconds.
      */
     public void setReceiveTimeout(long receiveTimeout) {
@@ -116,7 +118,7 @@ public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSuppor
     }
 
     public void setTaskExecutor(Executor taskExecutor) {
-        logger.info("\n SETTING this.taskExecutor");
+        //logger.info("\n SETTING this.taskExecutor");
         this.taskExecutor = taskExecutor;
     }
 
@@ -132,6 +134,7 @@ public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSuppor
 
     /**
      * Specify if {@code POP} operation from Redis List should be {@code BRPOP} or {@code BLPOP}.
+     *
      * @param rightPop the {@code BRPOP} flag. Defaults to {@code true}.
      * @since 4.3
      */
@@ -141,7 +144,7 @@ public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSuppor
 
     @Override
     protected void onInit() {
-        logger.info("\nonInit INVOKED");
+        //logger.info("\nonInit INVOKED");
         super.onInit();
         if (this.expectMessage) {
             Assert.notNull(this.serializer, "'serializer' has to be provided where 'expectMessage == true'.");
@@ -177,12 +180,10 @@ public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSuppor
             if (this.expectMessage) {
                 try {
                     message = (Message<Object>) this.serializer.deserialize(value);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     throw new MessagingException("Deserialization of Message failed.", e);
                 }
-            }
-            else {
+            } else {
                 Object payload = value;
                 if (this.serializer != null) {
                     payload = this.serializer.deserialize(value);
@@ -196,12 +197,10 @@ public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSuppor
         if (message != null) {
             if (this.listening) {
                 this.sendMessage(message);
-            }
-            else {
+            } else {
                 if (this.rightPop) {
                     this.boundListOperations.rightPush(value);
-                }
-                else {
+                } else {
                     this.boundListOperations.leftPush(value);
                 }
             }
@@ -214,20 +213,17 @@ public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSuppor
         try {
             if (this.rightPop) {
                 value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
-            }
-            else {
+            } else {
                 value = this.boundListOperations.leftPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             this.listening = false;
             if (this.active) {
                 logger.error("Failed to execute listening task. Will attempt to resubmit in " + this.recoveryInterval
                         + " milliseconds.", e);
                 publishException(e);
                 sleepBeforeRecoveryAttempt();
-            }
-            else {
+            } else {
                 logger.debug("Failed to execute listening task. " + e.getClass() + ": " + e.getMessage());
             }
         }
@@ -236,7 +232,7 @@ public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSuppor
 
     @Override
     public void doStart() {
-        logger.info("\ndoStart()");
+        //logger.info("\ndoStart()");
         if (!this.active) {
             this.active = true;
             this.restart();
@@ -248,12 +244,11 @@ public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSuppor
      * Called between recovery attempts.
      */
     private void sleepBeforeRecoveryAttempt() {
-        logger.info("\nsleepBeforeRecoveryAttempt()");
+        //logger.info("\nsleepBeforeRecoveryAttempt()");
         if (this.recoveryInterval > 0) {
             try {
                 Thread.sleep(this.recoveryInterval);
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 logger.debug("Thread interrupted while sleeping the recovery interval");
                 Thread.currentThread().interrupt();
             }
@@ -261,11 +256,10 @@ public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSuppor
     }
 
     private void publishException(Exception e) {
-        logger.info("\npublishException()");
+        //logger.info("\npublishException()");
         if (this.applicationEventPublisher != null) {
             this.applicationEventPublisher.publishEvent(new RedisExceptionEvent(this, e));
-        }
-        else {
+        } else {
             if (logger.isDebugEnabled()) {
                 logger.debug("No application event publisher for exception: " + e.getMessage());
             }
@@ -273,20 +267,20 @@ public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSuppor
     }
 
     private void restart() {
-        logger.info("\nrestart()");
+        //logger.info("\nrestart()");
         this.taskExecutor.execute(new CustomRedisQueueMessageDrivenEndpoint.ListenerTask());
     }
 
     @Override
     protected void doStop(Runnable callback) {
-        logger.info("\ndoStop()");
+        //logger.info("\ndoStop()");
         this.stopCallback = callback;
         doStop();
     }
 
     @Override
     protected void doStop() {
-        logger.info("\ndoStop 2()");
+        //logger.info("\ndoStop 2()");
         super.doStop();
         this.active = false;
         this.listening = false;
@@ -300,6 +294,7 @@ public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSuppor
      * Returns the size of the Queue specified by {@link #boundListOperations}. The queue is
      * represented by a Redis list. If the queue does not exist <code>0</code>
      * is returned. See also http://redis.io/commands/llen
+     *
      * @return Size of the queue. Never negative.
      */
     @ManagedMetric
@@ -331,18 +326,15 @@ public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSuppor
         @Override
         public void run() {
             String callerClassName = new Exception().getStackTrace()[1].getClassName();
-            logger.info("\n"+this.getClass().getName()+" ******************* RUN INVOKED ******************** by "+callerClassName);
             try {
                 while (CustomRedisQueueMessageDrivenEndpoint.this.active) {
                     CustomRedisQueueMessageDrivenEndpoint.this.listening = true;
                     CustomRedisQueueMessageDrivenEndpoint.this.popMessageAndSend();
                 }
-            }
-            finally {
+            } finally {
                 if (CustomRedisQueueMessageDrivenEndpoint.this.active) {
                     CustomRedisQueueMessageDrivenEndpoint.this.restart();
-                }
-                else if (CustomRedisQueueMessageDrivenEndpoint.this.stopCallback != null) {
+                } else if (CustomRedisQueueMessageDrivenEndpoint.this.stopCallback != null) {
                     CustomRedisQueueMessageDrivenEndpoint.this.stopCallback.run();
                     CustomRedisQueueMessageDrivenEndpoint.this.stopCallback = null;
                 }

@@ -9,6 +9,6 @@ public class ProvisioningProcessor implements Processor {
 
     @Override
     public void process(JSONObject payload) {
-        log.info("Processing incoming events of type "+this.getClass());
+        log.info("Processing incoming events of type " + this.getClass());
     }
 }

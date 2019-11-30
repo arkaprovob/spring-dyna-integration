@@ -1,6 +1,7 @@
 package com.pintegration.config;
 
 import com.pintegration.business.JsonTransformer;
+import com.pintegration.business.handler.Handler;
 import com.pintegration.config.examine.CustomRedisQueueMessageDrivenEndpoint;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -14,12 +15,10 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
-import org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpoint;
-import com.pintegration.business.handler.Handler;
 
 
 @Configuration
-@ConditionalOnBean(PIntegration.class)
+@ConditionalOnBean(DynamicIntegration.class)
 public class IntegrationConfig {
 
     Logger log = LoggerFactory.getLogger("IntegrationConfig");
@@ -37,8 +36,8 @@ public class IntegrationConfig {
         endPoint.setOutputChannelName("redisQueueHandler");
         endPoint.setSerializer(new StringRedisSerializer());
         log.info("\n");
-        log.info("CustomRedisQueueMessageDrivenEndpoint IS RUNNING STATUS ......{}",endPoint.isRunning());
-        log.info("CustomRedisQueueMessageDrivenEndpoint IS LISTENING STATUS ......{}",endPoint.isListening());
+        log.info("CustomRedisQueueMessageDrivenEndpoint IS RUNNING STATUS ......{}", endPoint.isRunning());
+        log.info("CustomRedisQueueMessageDrivenEndpoint IS LISTENING STATUS ......{}", endPoint.isListening());
         return endPoint;
     }
 
