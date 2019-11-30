@@ -8,6 +8,7 @@ import org.springframework.util.Assert;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class Handler {
 
@@ -29,7 +30,12 @@ public class Handler {
         String processorClassName = router.get(determineProcessorValue);
         Processor processor = null;
         try {
-            processor = (Processor) Class.forName(processorClassName).newInstance();
+            if(Objects.isNull(processorClassName) || processorClassName.isEmpty()){
+                processor = payload1 -> log
+                        .info("eventCategory attribute not found for this {} payload", payload1);
+            }else{
+                processor = (Processor) Class.forName(processorClassName).newInstance();
+            }
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
             log.error("", e);
         }
