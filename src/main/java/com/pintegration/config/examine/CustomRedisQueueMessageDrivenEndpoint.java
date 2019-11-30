@@ -158,7 +158,7 @@ public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSuppor
             this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
         }
 
-        doStart();
+        //doStart();
     }
 
     @Override
@@ -235,7 +235,7 @@ public class CustomRedisQueueMessageDrivenEndpoint extends MessageProducerSuppor
     }
 
     @Override
-    protected void doStart() {
+    public void doStart() {
         logger.info("\ndoStart()");
         if (!this.active) {
             this.active = true;

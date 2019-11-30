@@ -74,6 +74,7 @@ public class PIntegration {
         log.info("registered new DirectChannel named  {}",channel);
         context.registerBean(consumerEndPointBeanName,CustomRedisQueueMessageDrivenEndpoint.class,()->consumerEndPoint(queueName,channel));
         CustomRedisQueueMessageDrivenEndpoint endpoint = (CustomRedisQueueMessageDrivenEndpoint) context.getBean(consumerEndPointBeanName);
+        endpoint.doStart();
         log.info("registered new RedisQueueMessageDrivenEndpoint named  {}",consumerEndPointBeanName);
         IntegrationFlow flow = flow(channel);
         this.integrationFlowContext.registration(flow).register().start();
