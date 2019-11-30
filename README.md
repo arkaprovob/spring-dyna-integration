@@ -13,24 +13,12 @@ main documentation is available here https://docs.spring.io/spring-integration/d
 further read https://www.baeldung.com/spring-integration
 
 <H4>How to test</H4>
-Run this application
-
-<br/>
-
-for a batch event simulation test hit the following url
-<code>
- GET /api/simulate HTTP/1.1
- Host: localhost:9001
- Content-Type: text/plain
- </code>
- <br/>
- for testing one single message hit the following url
- <code>
- POST /api/simulate HTTP/1.1
- Host: localhost:9001
- Content-Type: text/plain
- payload: this is a sample payload
- </code>
+1. Run this application
+2. Go to redis cli create a new queue with this pattern <code>*Queue</code>
+for example <code>Jadis-Queue</code> then push message into the queue  <code> LPUSH Wadis-Queue 'HELLO Spring Integration'</code>
+you can create as many keys as you want with the mentioned pattern and push message into it.
+3. Hit this URL <code>http://localhost:9001/refresh</code>
+ 
                                       
                                       
  
